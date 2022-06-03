@@ -27,7 +27,7 @@ global slice nft_addr;                      ;; nft address
 
 
 () init_data() {
-    ifnot(empty?(init?)) {
+    ifnot(null?(init?)) {
         return ();
     }
     slice ds = get_data().begin_parse();
@@ -64,8 +64,7 @@ global slice nft_addr;                      ;; nft address
         .store_uint(mp_fee_factor, 32)
         .store_slice(royalty_fee_addr)
         .store_uint(royalty_fee_percent, 32)
-        .store_uint(royalty_fee_factor, 32)
-        .end_cell();
+        .store_uint(royalty_fee_factor, 32);
     
     builder bids_cell = begin_cell()
         .store_coins(min_bid)
@@ -73,20 +72,18 @@ global slice nft_addr;                      ;; nft address
         .store_coins(min_step)
         .store_slice(last_member)
         .store_coins(last_bid)
-        .store_uint(end_time, 32)
-        .end_cell();
+        .store_uint(end_time, 32);
     
     builder nft_cell = begin_cell()
         .store_slice(nft_owner)
-        .store_slice(nft_addr)
-        .end_cell();
+        .store_slice(nft_addr);
     
     set_data(begin_cell()
         .store_uint(end?, 1)
         .store_slice(mp_addr)
-        .store_ref(fees_cell)
-        .store_ref(bids_cell)
-        .store_ref(nft_cell)
+        .store_ref(fees_cell.end_cell())
+        .store_ref(bids_cell.end_cell())
+        .store_ref(nft_cell.end_cell())
         .end_cell()
     );
 }

@@ -1,0 +1,13 @@
+int division(int a, int b) { ;; division with factor
+    return a * 1000000000 / b;
+}
+
+int multiply(int a, int b) { ;; multiply with factor
+    return a * b / 1000000000;
+}
+
+
+
+int math::get_percent(int a, int percent, int factor) {
+    return division(multiply(a, percent), factor);
+}
