@@ -1,0 +1,56 @@
+() handle::return_transaction(slice sender_addr) impure inline_ref {
+    builder return_msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(sender_addr)
+        .store_coins(0)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_uint(0, 32)
+        .store_slice(msg::return_msg());
+    send_raw_message(return_msg.end_cell(), 64);
+}
+
+
+() handle::try_init_auction(slice sender_addr, slice in_msg_body) impure inline_ref {
+    throw_if(exit::auction_init(), nft_owner.slice_bits() > 2); ;; throw if auction already init
+    throw_unless(exit::no_transfer(), in_msg_body~load_uint(32) == op::ownership_assigned()); ;; throw if it`s not ownership assigned
+    in_msg_body~skip_bits(64); ;; query id
+    nft_owner = in_msg_body~load_msg_addr();
+    end? = 0;
+    pack_data();
+}
+
+() handle::try_cancel(slice in_msg_body) impure inline_ref {
+    throw_unless(exit::not_message(), in_msg_body~load_uint(32) == 0); ;;throw if it`s not message
+    throw_unless(exit::not_cancel(), equal_slices?(in_msg_body~load_slice(), msg::cancel_msg())); ;; throw if msg not "Cancel"
+
+
+    builder bid_return = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(last_member)
+        .store_coins(last_bid)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_uint(0, 32)
+        .store_slice(msg::bid_return);
+    
+    send_raw_message(bid_return.end_cell(), 2); ;; ignore errors
+
+    builder nft_return_body = begin_cell()
+        .store_uint(op::transfer(), 32)
+        .store_uint(cur_lt(), 64) ;; query id
+        .store_slice(nft_owner) ;; new owner
+        .store_slice(nft_owner) ;; response_destination
+        .store_uint(0, 1) ;; custom payload
+        .store_coins(0) ;; forward amount
+        .store_uint(0, 1) ;; forward payload
+        .end_cell();
+    
+    builder nft_return_msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(nft_addr)
+        .store_coins(0)
+        .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(nft_return_body);
+    
+    send_raw_message(nft_return_msg.end_cell(), 128);
+
+}

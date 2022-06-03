@@ -1,0 +1,36 @@
+#include "struct/stdlib.func";
+#include "struct/op-codes.func";
+#include "struct/storage.func";
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_cell, slice in_msg_body) impure {
+    if (in_msg_cell~load_uint(4) & 1) { ;; ignore bounce
+        return ();
+    }
+
+
+    slice sender_addr = in_msg_cell~load_msg_addr();
+    init_data();
+
+    if (end? == 1) {
+        handle::return_transaction(sender_addr);
+        return ();
+    }
+    
+
+    if (equal_slices?(sender_addr, mp_addr)) { ;; accept coins for deploy
+        return ();
+    }
+
+    if (equal_slices?(sender_addr, nft_addr)) {
+        handle::try_init_auction(sender_addr, in_msg_body);
+        return ();
+    }
+
+    if (equal_slices?(sender_addr, nft_owner)) {
+        handle::try_cancel(in_msg_body);
+        return();
+    }
+
+    handle::new_bid(sender_addr, msg_value);
+
+}
