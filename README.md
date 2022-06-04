@@ -25,3 +25,9 @@ export FUNC_STDLIB_PATH="path to ton-stdlib/func/stdlib.fc"
 bash build.sh
 ```
 
+## run tests
+
+```bash
+npm install
+npm run test
+```
