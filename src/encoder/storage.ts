@@ -5,7 +5,7 @@ interface FeesOptions {
     mpFeesAddr: Address
     mpFeePercent: number
     royaltyFeeAddr: Address
-    royaltyFeePercent: number 
+    royaltyFeePercent: number
 }
 
 interface BidsOptions {
@@ -15,15 +15,15 @@ interface BidsOptions {
     endTime: number
 }
 
-function encodeAucStorage(
-    fees: FeesOptions, 
+function encodeAucStorage (
+    fees: FeesOptions,
     bids: BidsOptions,
     mpAddr: Address,
     nftAddr: Address
 ): Cell {
     const factor = new Decimal(1e9)
-    const mpFee = new Decimal(fees.mpFeePercent).mul(factor).toNumber()
-    const royFee = new Decimal(fees.royaltyFeePercent).mul(factor).toNumber()
+    const mpFee = new Decimal(fees.mpFeePercent).mul(factor).div(100).toNumber()
+    const royFee = new Decimal(fees.royaltyFeePercent).mul(factor).div(100).toNumber()
 
     const feesCell = new Builder()
         .storeAddress(fees.mpFeesAddr)      // mp_fee_addr
@@ -54,7 +54,7 @@ function encodeAucStorage(
         .storeRef(feesCell)
         .storeRef(bidsCell)
         .storeRef(nftCell)
-    
+
     return storage.cell()
 }
 
