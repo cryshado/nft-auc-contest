@@ -25,7 +25,7 @@
     throw_unless(exit::no_transfer(), in_msg_body~load_uint(32) == op::ownership_assigned()); ;; throw if it`s not ownership assigned
     in_msg_body~skip_bits(64); ;; query id
     nft_owner = in_msg_body~load_msg_addr();
-    end? = 0;
+    end? = false;
     pack_data();
 }
 
@@ -68,7 +68,7 @@
         .store_ref(nft_return_body.end_cell());
     raw_reserve(1000000, 0); ;; reserve some bebras  🐈
     send_raw_message(nft_return_msg.end_cell(), 128);
-    end? = 1;
+    end? = true;
     pack_data();
 }
 
@@ -134,7 +134,7 @@
         .store_slice(msg::profit_msg());
     
     send_raw_message(prev_owner_msg.end_cell(), 128);
-    end? = 1;
+    end? = true;
     pack_data();
 }
 

@@ -31,7 +31,7 @@ global slice    nft_addr;               ;; nft address
     ifnot(null?(init?)) { return (); }
 
     slice ds = get_data().begin_parse();
-    end?    = ds~load_uint(1);
+    end?    = ds~load_int(1);
     mp_addr = ds~load_msg_addr();
 
     slice fees_cell = ds~load_ref().begin_parse();
@@ -80,7 +80,7 @@ global slice    nft_addr;               ;; nft address
     
     set_data(
         begin_cell()
-            .store_uint(end?, 1)
+            .store_int(end?, 1)
             .store_slice(mp_addr)
             .store_ref(fees_cell.end_cell())
             .store_ref(bids_cell.end_cell())
