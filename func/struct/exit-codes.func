@@ -1,5 +1,9 @@
-int exit::auction_init() asm "1001 PUSHINT";
-int exit::no_transfer() asm "1002 PUSHINT";
-int exit::not_message() asm "1003 PUSHINT";
-int exit::not_cancel() asm "1004 PUSHINT";
-int exit::auction_end() asm "1005 PUSHINT";
+;;
+;;  custom TVM exit codes
+;;
+
+int exit::auction_init()    asm "1001 PUSHINT";
+int exit::no_transfer()     asm "1002 PUSHINT";
+int exit::not_message()     asm "1003 PUSHINT";
+int exit::not_cancel()      asm "1004 PUSHINT";
+int exit::auction_end()     asm "1005 PUSHINT";

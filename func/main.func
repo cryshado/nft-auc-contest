@@ -1,14 +1,14 @@
-#include "struct/stdlib.func";
+;;
+;;  main FunC file
+;;
+
+int equal_slices? (slice a, slice b) asm "SDEQ";
 #include "struct/op-codes.func";
 #include "struct/exit-codes.func";
 #include "struct/math.func";
 #include "struct/msg-utils.func";
 #include "struct/storage.func";
 #include "struct/handles.func";
-
-
-
-
 
 {-
     SHOULD
@@ -18,21 +18,14 @@
     [+] can cancel auction
     [+] accept new bid -> check auction end -> end auction
 -}
-
-
 () recv_internal(int my_balance, int msg_value, cell in_msg_cell, slice in_msg_body) impure {
     slice cs = in_msg_cell.begin_parse();
-    if (cs~load_uint(4)) & 1 { ;; ignore bounce
-        return ();
-    }
-
+    throw_if(0, cs~load_uint(4) & 1);
 
     slice sender_addr = cs~load_msg_addr();
     init_data();
 
-
-
-    if (equal_slices?(sender_addr, mp_addr)) { ;; accept coins for deploy
+    if (equal_slices?(sender_addr, mp_addr)) {
         return ();
     }
 
@@ -53,5 +46,4 @@
     }
 
     handle::new_bid(sender_addr, msg_value);
-
 }

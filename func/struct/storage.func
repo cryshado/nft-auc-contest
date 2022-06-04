@@ -1,3 +1,7 @@
+;;
+;;  persistant and runtime storage вescription
+;;
+
 global int init?;
 
 global int end?;                            ;; end auction or not
@@ -11,7 +15,6 @@ global int mp_fee_factor;                   ;; factor (e.g. 1e9)
 global slice royalty_fee_addr;              ;; the address of the collection owner where the commission goes
 global int royalty_fee_percent;             ;; royalty fee percent (e.g. 100000(1% with 1e9 factor))
 global int royalty_fee_factor;              ;; factor (e.g. 1e9)
-
 
 ;; bids info cell (ref)
 global int min_bid;                         ;; minimal bid
@@ -27,9 +30,8 @@ global slice nft_addr;                      ;; nft address
 
 
 () init_data() {
-    ifnot(null?(init?)) {
-        return ();
-    }
+    ifnot(null?(init?)) { return (); }
+
     slice ds = get_data().begin_parse();
     end? = ds~load_uint(1);
     mp_addr = ds~load_msg_addr();
@@ -78,13 +80,14 @@ global slice nft_addr;                      ;; nft address
         .store_slice(nft_owner)
         .store_slice(nft_addr);
     
-    set_data(begin_cell()
-        .store_uint(end?, 1)
-        .store_slice(mp_addr)
-        .store_ref(fees_cell.end_cell())
-        .store_ref(bids_cell.end_cell())
-        .store_ref(nft_cell.end_cell())
-        .end_cell()
+    set_data(
+        begin_cell()
+            .store_uint(end?, 1)
+            .store_slice(mp_addr)
+            .store_ref(fees_cell.end_cell())
+            .store_ref(bids_cell.end_cell())
+            .store_ref(nft_cell.end_cell())
+            .end_cell()
     );
 }
 

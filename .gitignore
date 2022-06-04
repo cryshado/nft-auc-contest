@@ -1,0 +1,8 @@
+.vscode
+auto/*
+!auto/.gitkeep
+config.boc
+.npm
+node_modules
+.eslintcache
+dist

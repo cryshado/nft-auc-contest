@@ -1,3 +1,7 @@
+;;
+;;  function handlers
+;;
+
 () handle::return_transaction(slice sender_addr) impure inline_ref {
     builder return_msg = begin_cell()
         .store_uint(0x18, 6)
@@ -10,11 +14,11 @@
 }
 
 {-
-SHOULD
-[+] check init auction or not
-[+] check op
-[+] change nft owner
-[+] change auction status
+    SHOULD
+    [+] check init auction or not
+    [+] check op
+    [+] change nft owner
+    [+] change auction status
 -}
 () handle::try_init_auction(slice sender_addr, slice in_msg_body) impure inline_ref {
     throw_if(exit::auction_init(), nft_owner.slice_bits() > 2); ;; throw if auction already init
@@ -27,10 +31,10 @@ SHOULD
 
 
 {-
-SHOULD
-[+] return prev bid 
-[+] return nft to owner
-[+] reserve 0,001 ton 
+    SHOULD
+    [+] return prev bid 
+    [+] return nft to owner
+    [+] reserve 0,001 ton 
 -}
 () handle::try_cancel(slice in_msg_body) impure inline_ref {
     throw_unless(exit::not_message(), in_msg_body~load_uint(32) == 0); ;;throw if it`s not message
@@ -69,13 +73,13 @@ SHOULD
 }
 
 {-
-SHOULD
-[+] transfer nft
-[+] send marketplace fee
-[+] send royalty fee
-[+] reserve 0,001 ton 
-[+] send profit to previous nft owner
-[+] change auction status
+    SHOULD
+    [+] transfer nft
+    [+] send marketplace fee
+    [+] send royalty fee
+    [+] reserve 0,001 ton 
+    [+] send profit to previous nft owner
+    [+] change auction status
 -}
 () handle::end_auction() impure inline_ref {
     builder nft_transfer_body = begin_cell()
@@ -135,15 +139,14 @@ SHOULD
 }
 
 
-
 {-
-SHOULD 
-[+] check time  
-[+] check bid step amount
-[+] check init auction or not 
-[+] return prev bid
-[+] change bid info
-[+] check max bid
+    SHOULD 
+    [+] check time  
+    [+] check bid step amount
+    [+] check init auction or not 
+    [+] return prev bid
+    [+] change bid info
+    [+] check max bid
 -}
 () handle::new_bid(slice sender_addr, int msg_value) impure inline_ref {
     throw_if(exit::auction_end(), end? == 1);
