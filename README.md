@@ -22,6 +22,6 @@ export FUNC_STDLIB_PATH="path to ton-stdlib/func/stdlib.fc"
 
 3. run command
 ```bash
-npm run build-smc
+bash build.sh
 ```
 
