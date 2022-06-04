@@ -32,13 +32,18 @@
         }
     },
     "rules": {
-        "import/no-extraneous-dependencies": "off",
         "no-console": "off",
         "no-shadow": "off",
         "no-bitwise": "off",
         "no-unused-vars": "off",
+        // "indent": ["error", 4, {
+        //     "SwitchCase": 1
+        // }],
+        // "semi": ["error", "never"],
+        // "comma-dangle": ["error", "never"],
         "array-bracket-spacing": ["error", "always"],
         "object-curly-newline": ["error", { "multiline": true }],
+        // "object-curly-spacing": ["error", "always"],
         "no-useless-constructor": "off",
         "@typescript-eslint/indent": ["error", 4, {
             "SwitchCase": 1
@@ -67,6 +72,9 @@
         "no-underscore-dangle": "off",
         "arrow-parens": [2, "as-needed", {
             "requireForBlockBody": true
+        }],
+        "import/no-extraneous-dependencies": ["error", {
+            "devDependencies": ["**/*.test.ts", "**/*.spec.ts", "**/*.e2e-spec.ts", "./webpack.config.json"]
         }],
         "import/extensions": ["error", "ignorePackages", {
             "js": "never",

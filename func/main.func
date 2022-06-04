@@ -23,6 +23,7 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
     throw_if(0, cs~load_uint(4) & 1);
 
     slice sender_addr = cs~load_msg_addr();
+    ;; TODO: check first 3 bits is 000 (addr_str$00 with Anycast = 0)
     init_data();
 
     if (equal_slices?(sender_addr, mp_addr)) {

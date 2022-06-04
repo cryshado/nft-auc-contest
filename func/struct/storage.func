@@ -59,33 +59,36 @@ global slice    nft_addr;               ;; nft address
 
 () pack_data() impure {
     builder fees_cell = begin_cell()
-        .store_slice(mp_fee_addr)
-        .store_uint(mp_fee_percent, 32)
-        .store_uint(mp_fee_factor, 32)
-        .store_slice(royalty_fee_addr)
-        .store_uint(royalty_fee_percent, 32)
-        .store_uint(royalty_fee_factor, 32);
+        .store_slice(mp_fee_addr)               ;; + max    267 ($10 with Anycast = 0)
+        .store_uint(mp_fee_percent, 32)         ;; + stc    32
+        .store_uint(mp_fee_factor, 32)          ;; + stc    32
+        .store_slice(royalty_fee_addr)          ;; + max    267 ($10 with Anycast = 0)
+        .store_uint(royalty_fee_percent, 32)    ;; + stc    32
+        .store_uint(royalty_fee_factor, 32);    ;; + stc    32
+        ;; total: (267 * 2) + (32 * 4) = 662 maximum bits
     
     builder bids_cell = begin_cell()
-        .store_coins(min_bid)
-        .store_coins(max_bid)
-        .store_coins(min_step)
-        .store_slice(last_member)
-        .store_coins(last_bid)
-        .store_uint(end_time, 32);
+        .store_coins(min_bid)       ;; + max    124
+        .store_coins(max_bid)       ;; + max    124
+        .store_coins(min_step)      ;; + max    124
+        .store_slice(last_member)   ;; + max    267 ($10 with Anycast = 0)
+        .store_coins(last_bid)      ;; + max    124
+        .store_uint(end_time, 32);  ;; + stc    32
+        ;; total: (124 * 4) + 267 + 32 = 795 maximum bits
     
     builder nft_cell = begin_cell()
-        .store_slice(nft_owner)
-        .store_slice(nft_addr);
+        .store_slice(nft_owner)     ;; + max    267 ($10 with Anycast = 0)
+        .store_slice(nft_addr);     ;; + max    267 ($10 with Anycast = 0)
+        ;; total: 267 * 2 = 534 maximum bits
     
     set_data(
         begin_cell()
-            .store_int(end?, 1)
-            .store_slice(mp_addr)
-            .store_ref(fees_cell.end_cell())
-            .store_ref(bids_cell.end_cell())
-            .store_ref(nft_cell.end_cell())
-            .end_cell()
+        .store_int(end?, 1)                 ;; + stc    1
+        .store_slice(mp_addr)               ;; + max    267 ($10 with Anycast = 0)
+        .store_ref(fees_cell.end_cell())    ;; + ref
+        .store_ref(bids_cell.end_cell())    ;; + ref
+        .store_ref(nft_cell.end_cell())     ;; + ref
+        .end_cell()
     );
 }
 
