@@ -47,3 +47,7 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
 
     handle::new_bid(sender_addr, msg_value);
 }
+
+(int) test() method_id {
+    return 12345;
+}
