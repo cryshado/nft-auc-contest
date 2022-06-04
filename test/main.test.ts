@@ -37,7 +37,7 @@ describe('SmartContract main tests', () => {
             nftAddress
         )
 
-        const tStorage = TCell.fromBoc(BOC.toBase64Standard(data))[0]
+        const tStorage = TCell.fromBoc(BOC.toHexStandard(data))[0]
         SmartContract.fromCell(code, tStorage).then((_smc) => {
             smc = _smc
         })
