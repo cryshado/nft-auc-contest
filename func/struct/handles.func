@@ -177,9 +177,14 @@
     }
 
     if (last_bid == 0) {
-        last_member = sender_addr;
-        last_bid = msg_value;
-        pack_data();
+        if (msg_value >= min_bid) {
+            last_member = sender_addr;
+            last_bid = msg_value;
+            pack_data();
+        }
+        else {
+            handle::return_transaction(sender_addr);
+        }
         return ();
     }
 
