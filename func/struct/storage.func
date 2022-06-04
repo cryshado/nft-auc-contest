@@ -2,59 +2,57 @@
 ;;  persistant and runtime storage вescription
 ;;
 
-global int init?;
-
-global int end?;                            ;; end auction or not
-
-global slice mp_addr;                       ;; the address of the marketplace from which the contract is deployed
+global int      init?;                  ;; init_data safe check
+global int      end?;                   ;; end auction or not
+global slice    mp_addr;                ;; the address of the marketplace from which the contract is deployed
 
 ;; fees cell (ref)
-global slice mp_fee_addr;                   ;; the address of the marketplace where the commission goes
-global int mp_fee_percent;                  ;; marketplace fee percent (e.g. 100000(1% with 1e9 factor))
-global int mp_fee_factor;                   ;; factor (e.g. 1e9)
-global slice royalty_fee_addr;              ;; the address of the collection owner where the commission goes
-global int royalty_fee_percent;             ;; royalty fee percent (e.g. 100000(1% with 1e9 factor))
-global int royalty_fee_factor;              ;; factor (e.g. 1e9)
+global slice    mp_fee_addr;            ;; the address of the marketplace where the commission goes
+global int      mp_fee_percent;         ;; marketplace fee percent (e.g. 100000(1% with 1e9 factor))
+global int      mp_fee_factor;          ;; factor (e.g. 1e9)
+global slice    royalty_fee_addr;       ;; the address of the collection owner where the commission goes
+global int      royalty_fee_percent;    ;; royalty fee percent (e.g. 100000(1% with 1e9 factor))
+global int      royalty_fee_factor;     ;; factor (e.g. 1e9)
 
 ;; bids info cell (ref)
-global int min_bid;                         ;; minimal bid
-global int max_bid;                         ;; maximum bid
-global int min_step;                        ;; minimum step (can be 0)
-global slice last_member;                   ;; last member address
-global int last_bid;                        ;; last bid amount
-global int end_time;                        ;; unix end time
+global int      min_bid;                ;; minimal bid
+global int      max_bid;                ;; maximum bid
+global int      min_step;               ;; minimum step (can be 0)
+global slice    last_member;            ;; last member address
+global int      last_bid;               ;; last bid amount
+global int      end_time;               ;; unix end time
 
 ;; nft info cell (ref)
-global slice nft_owner;                     ;; nft owner addres (should be sent nft if auction canceled or money from auction)
-global slice nft_addr;                      ;; nft address
+global slice    nft_owner;              ;; nft owner addres (should be sent nft if auction canceled or money from auction)
+global slice    nft_addr;               ;; nft address
 
 
-() init_data() {
+() init_data() impure {- save for get methods -} {
     ifnot(null?(init?)) { return (); }
 
     slice ds = get_data().begin_parse();
-    end? = ds~load_uint(1);
+    end?    = ds~load_uint(1);
     mp_addr = ds~load_msg_addr();
 
     slice fees_cell = ds~load_ref().begin_parse();
-    mp_fee_addr = fees_cell~load_msg_addr();
-    mp_fee_percent = fees_cell~load_uint(32);
-    mp_fee_factor = fees_cell~load_uint(32);
-    royalty_fee_addr = fees_cell~load_msg_addr();
+    mp_fee_addr         = fees_cell~load_msg_addr();
+    mp_fee_percent      = fees_cell~load_uint(32);
+    mp_fee_factor       = fees_cell~load_uint(32);
+    royalty_fee_addr    = fees_cell~load_msg_addr();
     royalty_fee_percent = fees_cell~load_uint(32);
-    royalty_fee_factor = fees_cell~load_uint(32);
+    royalty_fee_factor  = fees_cell~load_uint(32);
 
     slice bids_cell = ds~load_ref().begin_parse();
-    min_bid = bids_cell~load_coins();
-    max_bid = bids_cell~load_coins();
-    min_step = bids_cell~load_coins();
+    min_bid     = bids_cell~load_coins();
+    max_bid     = bids_cell~load_coins();
+    min_step    = bids_cell~load_coins();
     last_member = bids_cell~load_msg_addr();
-    last_bid = bids_cell~load_coins();
-    end_time = bids_cell~load_uint(32);
+    last_bid    = bids_cell~load_coins();
+    end_time    = bids_cell~load_uint(32);
 
     slice nft_cell = ds~load_ref().begin_parse();
-    nft_owner = nft_cell~load_msg_addr();
-    nft_addr = nft_cell~load_msg_addr();
+    nft_owner   = nft_cell~load_msg_addr();
+    nft_addr    = nft_cell~load_msg_addr();
 
     init? = true;
 }
