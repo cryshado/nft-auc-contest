@@ -9,6 +9,7 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
 #include "struct/msg-utils.func";
 #include "struct/storage.func";
 #include "struct/handles.func";
+#include "struct/get-met.func";
 
 {-
     SHOULD
@@ -40,7 +41,6 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
         return ();
     }
     
-
     if (equal_slices?(sender_addr, nft_owner)) {
         handle::try_cancel(in_msg_body);
         return();

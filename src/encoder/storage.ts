@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js'
-import { Address, Builder, Cell, Coins } from 'ton3'
+import { Address, Builder, Cell } from 'ton'
+import BN from 'bn.js'
 
 interface FeesOptions {
     mpFeesAddr: Address
@@ -9,9 +10,9 @@ interface FeesOptions {
 }
 
 interface BidsOptions {
-    mminBid: Coins
-    mmaxBid: Coins
-    minStep: Coins
+    mminBid: BN
+    mmaxBid: BN
+    minStep: BN
     endTime: number
 }
 
@@ -32,21 +33,21 @@ function encodeAucStorage (
         .storeAddress(fees.royaltyFeeAddr)  // royalty_fee_addr
         .storeUint(royFee, 32)              // royalty_fee_percent
         .storeUint(factor.toNumber(), 32)   // royalty_fee_factor
-        .cell()
+        .endCell()
 
     const bidsCell = new Builder()
         .storeCoins(bids.mminBid)       // min_bid
         .storeCoins(bids.mmaxBid)       // max_bid
         .storeCoins(bids.minStep)       // min_step
-        .storeAddress(Address.NONE)     // last_member
-        .storeCoins(new Coins(0))       // last_bid
+        .storeBitArray([ 0, 0 ])        // last_member
+        .storeCoins(0)                  // last_bid
         .storeUint(bids.endTime, 32)    // end_time
-        .cell()
+        .endCell()
 
     const nftCell = new Builder()
-        .storeAddress(Address.NONE)     // nft_owner
+        .storeBitArray([ 0, 0 ])        // nft_owner
         .storeAddress(nftAddr)          // nft_addr
-        .cell()
+        .endCell()
 
     const storage = new Builder()
         .storeBit(1)            // end?
@@ -55,7 +56,7 @@ function encodeAucStorage (
         .storeRef(bidsCell)
         .storeRef(nftCell)
 
-    return storage.cell()
+    return storage.endCell()
 }
 
 export { encodeAucStorage }

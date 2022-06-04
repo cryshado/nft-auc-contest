@@ -18,6 +18,6 @@
   "ts-node": {
     "transpileOnly": true
   },
-  "include": ["./scripts", "./test"],
+  "include": ["./src", "./test"],
   "exclude": ["node_modules", "dist"]
 }

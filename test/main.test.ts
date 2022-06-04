@@ -1,24 +1,38 @@
 import { expect } from 'chai'
-import { Cell as TCell } from 'ton'
-import { Address, BOC, Coins } from 'ton3'
+import {
+    Builder,
+    InternalMessage,
+    CommonMessageInfo,
+    CellMessage,
+    Cell,
+    toNano,
+    Address
+} from 'ton'
 import * as fs from 'fs'
 import { SmartContract } from 'ton-contract-executor'
-import { encodeAucStorage } from '../src/encoder'
+import { BN } from 'bn.js'
+import { encodeAucStorage, encodeNFTOwnershipAssigned } from '../src/encoder'
+import { getRandSigner } from '../src/utils'
 
-function bocFileToTCell (filename: string): TCell {
+function bocFileToTCell (filename: string): Cell {
     const file = fs.readFileSync(filename)
-    return TCell.fromBoc(file)[0]
+    return Cell.fromBoc(file)[0]
 }
 
 describe('SmartContract main tests', () => {
     let smc: SmartContract
 
-    const marketAddress = new Address('EQAB_3oC0MH1r4fz1kztk6Nhq9GFQnrBUgObzrhyAXjzzjrc')
-    const marketFeesAddress = new Address('EQD85CtgkwdmFF-0lAyPFbzk0yaM48PmXOiJ42sEtIW_hI8H')
-    const royaltyFeeAddress = new Address('EQDQA68_iHZrDEdkqjJpXcVqEM3qQC9u0w4nAhYJ4Ddsjttc')
-    const nftAddress = new Address('EQAQwQc4N7k_2q1ZQoTOi47_e5zyVCdEDrL8aCdi4UcTZef4')
+    const SELF_ADDR = getRandSigner()
 
-    beforeEach(() => {
+    const marketAddress = getRandSigner()
+    const marketFeesAddress = getRandSigner()
+    const royaltyFeeAddress = getRandSigner()
+    const nftAddress = getRandSigner()
+
+    const nftOwner = getRandSigner()
+    const deployer = marketAddress
+
+    beforeEach(async () => {
         const code = bocFileToTCell('./auto/code.boc')
         const data = encodeAucStorage(
             {
@@ -28,27 +42,49 @@ describe('SmartContract main tests', () => {
                 royaltyFeePercent: 5
             },
             {
-                mminBid: new Coins(0.1),
-                mmaxBid: new Coins(100),
-                minStep: new Coins(0.1),
+                mminBid: toNano(0.1),
+                mmaxBid: toNano(100),
+                minStep: toNano(0.1),
                 endTime: ~~(Date.now() / 1000) + (60 * 60 * 24) // 24h
             },
             marketAddress,
             nftAddress
         )
 
-        const tStorage = TCell.fromBoc(BOC.toHexStandard(data))[0]
-        SmartContract.fromCell(code, tStorage).then((_smc) => {
-            smc = _smc
+        smc = await SmartContract.fromCell(code, data)
+
+        // send first deploy msg
+        await smc.sendInternalMessage(new InternalMessage({
+            to: SELF_ADDR,
+            from: deployer,
+            value: toNano(0.1),
+            bounce: true,
+            body: new CommonMessageInfo({ body: new CellMessage(new Builder().endCell()) })
+        }))
+    })
+
+    describe('contract', () => {
+        it('check new nft owner with OwnershipAssigned', async () => {
+            const msg = encodeNFTOwnershipAssigned(new BN(123), nftOwner)
+
+            await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: nftAddress,
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+
+            const get = await smc.invokeGetMethod('get_nft_owner', [])
+
+            const nftOwnerState = new Address(
+                Number(get.result[0].toString()),
+                new BN(get.result[1].toString()).toBuffer()
+            )
+
+            expect(nftOwnerState.toFriendly()).to.equal(nftOwner.toFriendly())
         })
     })
 
-    describe('#case1()', () => {
-        it('invokeGetMethod test', async () => {
-            const result = await smc.invokeGetMethod('test', [])
-            const stack = Array.from(result.result.values())
-
-            expect(stack[0].toString()).to.equal('12345')
-        })
-    })
+    after(() => { process.exit(0) })
 })

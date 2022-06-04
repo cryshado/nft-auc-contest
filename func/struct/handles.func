@@ -152,9 +152,6 @@
 () handle::new_bid(slice sender_addr, int msg_value) impure inline_ref {
     throw_if(exit::auction_end(), end? == 1);
 
-
-
-
     if (end_time < now()) {
         handle::return_transaction(sender_addr);
         handle::end_auction();
@@ -187,7 +184,6 @@
         }
         return ();
     }
-
 
     if (msg_value < (last_bid + min_step)) {
         handle::return_transaction(sender_addr);

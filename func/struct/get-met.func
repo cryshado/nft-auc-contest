@@ -1,0 +1,10 @@
+
+(int, int) get_nft_owner() method_id {
+    init_data();
+
+    int pfx = nft_owner.preload_uint(2);
+    if (pfx == 0) { return (0, 0); }
+
+    (int wc, int addr) = parse_std_addr(nft_owner);
+    return (wc, addr);
+}

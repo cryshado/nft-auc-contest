@@ -27,7 +27,7 @@ global slice    nft_owner;              ;; nft owner addres (should be sent nft 
 global slice    nft_addr;               ;; nft address
 
 
-() init_data() impure {- save for get methods -} {
+() init_data() impure inline_ref {- save for get methods -} {
     ifnot(null?(init?)) { return (); }
 
     slice ds = get_data().begin_parse();
@@ -57,7 +57,7 @@ global slice    nft_addr;               ;; nft address
     init? = true;
 }
 
-() pack_data() impure {
+() pack_data() impure inline_ref {
     builder fees_cell = begin_cell()
         .store_slice(mp_fee_addr)               ;; + max    267 ($10 with Anycast = 0)
         .store_uint(mp_fee_percent, 32)         ;; + stc    32
