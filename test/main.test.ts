@@ -1,4 +1,6 @@
 import { expect } from 'chai'
+import * as fs from 'fs'
+import BN from 'bn.js'
 import {
     Builder,
     InternalMessage,
@@ -8,9 +10,7 @@ import {
     toNano,
     Address
 } from 'ton'
-import * as fs from 'fs'
 import { SmartContract } from 'ton-contract-executor'
-import BN from 'bn.js'
 import { encodeAucStorage, MSG } from '../src/encoder'
 import { getRandSigner } from '../src/utils'
 
@@ -20,8 +20,7 @@ function bocFileToTCell (filename: string): Cell {
 }
 
 function queryId (): BN {
-    const id = new BN(~~(Date.now() / 1000))
-    return id
+    return new BN(~~(Date.now() / 1000))
 }
 
 const TVM_EXIT_CODES = {
@@ -46,7 +45,9 @@ describe('SmartContract main tests', () => {
     const NFT_OWNER = getRandSigner()
     const DEPLOYER = MARKET_ADDR
 
-    const EMPTY_BODY = new CommonMessageInfo({ body: new CellMessage(new Builder().endCell()) })
+    const EMPTY_BODY = new CommonMessageInfo(
+        { body: new CellMessage(new Builder().endCell()) }
+    )
 
     beforeEach(async () => {
         const code = bocFileToTCell('./auto/code.boc')
