@@ -12,6 +12,7 @@ interface FeesOptions {
 interface BidsOptions {
     mminBid: BN
     mmaxBid: BN
+    lastBid: BN
     minStep: BN
     endTime: number
 }
@@ -40,7 +41,7 @@ function encodeAucStorage (
         .storeCoins(bids.mmaxBid)       // max_bid
         .storeCoins(bids.minStep)       // min_step
         .storeBitArray([ 0, 0 ])        // last_member
-        .storeCoins(0)                  // last_bid
+        .storeCoins(bids.lastBid)       // last_bid
         .storeUint(bids.endTime, 32)    // end_time
         .endCell()
 

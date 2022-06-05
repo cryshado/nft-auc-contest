@@ -45,6 +45,8 @@ describe('SmartContract main tests', () => {
     const NFT_OWNER = getRandSigner()
     const DEPLOYER = MARKET_ADDR
 
+    const MAX_BID_TON = 100
+
     const EMPTY_BODY = new CommonMessageInfo(
         { body: new CellMessage(new Builder().endCell()) }
     )
@@ -60,8 +62,9 @@ describe('SmartContract main tests', () => {
             },
             {
                 mminBid: toNano(1),
-                mmaxBid: toNano(100),
+                mmaxBid: toNano(MAX_BID_TON),
                 minStep: toNano(0.1),
+                lastBid: toNano(0),
                 endTime: ~~(Date.now() / 1000) + (60 * 60 * 24) // 24h
             },
             MARKET_ADDR,
@@ -88,19 +91,16 @@ describe('SmartContract main tests', () => {
 
         async function placeBidsOrder (values: number[]): Promise<ISimpleResult[]> {
             const resultArr: ISimpleResult[] = []
-            await Promise.all(values.map(async (value) => {
+            for (let i: number = 0; i < values.length; i += 1) {
                 const result = await smc.sendInternalMessage(new InternalMessage({
                     to: SELF_ADDR,
                     from: getRandSigner(),
-                    value: toNano(value),
+                    value: toNano(values[i]),
                     bounce: true,
                     body: EMPTY_BODY
                 }))
                 resultArr.push({ exit_code: result.exit_code, out: result.actionList })
-                const get = await smc.invokeGetMethod('bid_info', [])
-                console.log('last_bid:', Number(get.result.toString()) / 1e9)
-            }))
-
+            }
             return resultArr
         }
 
@@ -212,17 +212,42 @@ describe('SmartContract main tests', () => {
             await simpleTransferNFT()
 
             const results = await placeBidsOrder([ 10, 15, 30 ])
-            results.forEach((res) => {
+            results.forEach((res, i: number) => {
+                if (i > 0) {
+                    expect(res.out.length).to.equals(1)
+                    expect(res.out[0].type).to.equal('send_msg')
+                    const checkCase = <any>res.out[0]
+                    expect(checkCase.mode).to.equals(2 /* send mode must be 2 */)
+                } else {
+                    expect(res.out.length).to.equals(0)
+                }
                 expect(res.exit_code).to.equal(TVM_EXIT_CODES.OK)
             })
         })
 
         it('6.1) place bids in incorrect order', async () => {
             await simpleTransferNFT()
+            const result = await placeBidsOrder([ 10, 5 ])
 
-            const results = await placeBidsOrder([ 10, 5 ])
-            results.forEach((res) => {
-                console.log(res)
+            expect(result.length).to.equals(2)
+            expect(result[1].out.length).to.equals(1)
+            expect(result[1].out[0].type).to.equals('send_msg')
+            const checkCase = <any>result[1].out[0]
+            expect(checkCase.mode).to.equals(64)
+        })
+
+        it('7) a bid with instant redemption (the first bid at once)', async () => {
+            await simpleTransferNFT()
+            const result = await placeBidsOrder([ MAX_BID_TON ])
+
+            expect(result[0].out.length).to.equals(5)
+            const modes: number[] = [ 2, 3, 3, 0, 128 ]
+            const types: string[] = [ 'send_msg', 'send_msg', 'send_msg', 'reserve_currency', 'send_msg' ]
+
+            result[0].out.forEach((e, i: number) => {
+                const msgo = <any>e
+                expect(msgo.mode).to.equals(modes[i])
+                expect(msgo.type).to.equals(types[i])
             })
         })
     })
