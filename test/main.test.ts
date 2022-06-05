@@ -25,6 +25,7 @@ function queryId (): BN {
 
 const TVM_EXIT_CODES = {
     OK: 0,
+    lowBid: 1000,
     auctionInit: 1001,
     noTransfer: 1002,
     notMessage: 1003,
@@ -45,7 +46,9 @@ describe('SmartContract main tests', () => {
     const NFT_OWNER = getRandSigner()
     const DEPLOYER = MARKET_ADDR
 
+    const MIN_BET_TON = 1
     const MAX_BID_TON = 100
+    const END_AUC = ~~(Date.now() / 1000) + (60 * 60 * 24) // 24h
 
     const EMPTY_BODY = new CommonMessageInfo(
         { body: new CellMessage(new Builder().endCell()) }
@@ -61,11 +64,11 @@ describe('SmartContract main tests', () => {
                 royaltyFeePercent: 5
             },
             {
-                mminBid: toNano(1),
+                mminBid: toNano(MIN_BET_TON),
                 mmaxBid: toNano(MAX_BID_TON),
-                minStep: toNano(0.1),
+                minStep: toNano(0.5),
                 lastBid: toNano(0),
-                endTime: ~~(Date.now() / 1000) + (60 * 60 * 24) // 24h
+                endTime: END_AUC
             },
             MARKET_ADDR,
             NFT_ADDR
@@ -225,7 +228,7 @@ describe('SmartContract main tests', () => {
             })
         })
 
-        it('6.1) place bids in incorrect order', async () => {
+        it('7) place bids in incorrect order', async () => {
             await simpleTransferNFT()
             const result = await placeBidsOrder([ 10, 5 ])
 
@@ -236,7 +239,7 @@ describe('SmartContract main tests', () => {
             expect(checkCase.mode).to.equals(64)
         })
 
-        it('7) a bid with instant redemption (the first bid at once)', async () => {
+        it('8) a bid with instant redemption (the first bid at once)', async () => {
             await simpleTransferNFT()
             const result = await placeBidsOrder([ MAX_BID_TON ])
 
@@ -250,7 +253,57 @@ describe('SmartContract main tests', () => {
                 expect(msgo.type).to.equals(types[i])
             })
         })
+
+        it('9) a bid with instant redemption (when there were already bids)', async () => {
+            await simpleTransferNFT()
+
+            const result = await placeBidsOrder([ 10, 50, MAX_BID_TON ])
+
+            expect(result[2].out.length).to.equals(6)
+            const modes: number[] = [ 2, 2, 3, 3, 0, 128 ]
+            const types: string[] = [ 'send_msg', 'send_msg', 'send_msg', 'send_msg', 'reserve_currency', 'send_msg' ]
+
+            result[2].out.forEach((e, i: number) => {
+                const msgo = <any>e
+                expect(msgo.mode).to.equals(modes[i])
+                expect(msgo.type).to.equals(types[i])
+            })
+        })
+
+        it('10) bid with the end of time', async () => {
+            await simpleTransferNFT()
+            smc.setUnixTime(END_AUC + 1)
+
+            const result = await placeBidsOrder([ 50 ])
+
+            const modes: number[] = [ 64, 2, 3, 3, 0, 128 ]
+            const types: string[] = [ 'send_msg', 'send_msg', 'send_msg', 'send_msg', 'reserve_currency', 'send_msg' ]
+
+            expect(result[0].exit_code).to.equals(TVM_EXIT_CODES.OK)
+            result[0].out.forEach((e, i: number) => {
+                const msgo = <any>e
+                expect(msgo.mode).to.equals(modes[i])
+                expect(msgo.type).to.equals(types[i])
+            })
+        })
+
+        it('11) try to bet less than the minimum bet', async () => {
+            await simpleTransferNFT()
+            const result = await placeBidsOrder([ MIN_BET_TON - 0.1 ])
+            expect(result[0].exit_code).to.equals(TVM_EXIT_CODES.lowBid)
+        })
+
+        it('12) bid in increments less than in the contract', async () => {
+            await simpleTransferNFT()
+            const result = await placeBidsOrder([ 2, 2.09 ])
+
+            expect(result[1].exit_code).to.equals(TVM_EXIT_CODES.OK)
+            expect(result[1].out.length).to.equals(1)
+            expect(result[1].out[0].type).to.equals('send_msg')
+            const msgo = <any>result[1].out[0]
+            expect(msgo.mode).to.equals(64)
+        })
     })
 
-    // after(() => { process.exit(0) })
+    after(() => { setTimeout(() => { process.exit(0) }, 2500) })
 })

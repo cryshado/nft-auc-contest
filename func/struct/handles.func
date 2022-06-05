@@ -176,7 +176,7 @@
     }
 
     ifnot(last_bid) {
-        throw_if(1000, msg_value < min_bid);
+        throw_if(exit::low_bid(), msg_value < min_bid);
         last_bid = msg_value;
         last_member = sender_addr;
         pack_data();
