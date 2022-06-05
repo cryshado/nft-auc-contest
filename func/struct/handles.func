@@ -150,7 +150,7 @@
     [+] check max bid
 -}
 () handle::new_bid(slice sender_addr, int msg_value) impure inline_ref {
-    throw_if(exit::auction_end(), end? == 1);
+    throw_if(exit::auction_end(), end? == true);
 
     if (end_time < now()) {
         handle::return_transaction(sender_addr);

@@ -1,4 +1,4 @@
 import { encodeAucStorage } from './storage'
-import { encodeNFTOwnershipAssigned } from './msg'
+import { MSG } from './msg'
 
-export { encodeAucStorage, encodeNFTOwnershipAssigned }
+export { encodeAucStorage, MSG }

@@ -32,6 +32,7 @@
         }
     },
     "rules": {
+        "no-await-in-loop": "off",
         "no-multi-spaces": "off",
         "no-console": "off",
         "no-shadow": "off",
