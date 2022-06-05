@@ -1,16 +1,58 @@
-
 (int, int) get_nft_owner() method_id {
     init_data();
-
-    int pfx = nft_owner.preload_uint(2);
-    if (pfx == 0) { return (0, 0); }
-
+    ;; trhow error of addr not std
     (int wc, int addr) = parse_std_addr(nft_owner);
     return (wc, addr);
 }
 
-(int) bid_info() method_id {
+(int, int) get_nft_addr() method_id {
     init_data();
-
-    return (last_bid);
+    ;; trhow error of addr not std
+    (int wc, int addr) = parse_std_addr(nft_addr);
+    return (wc, addr);
 }
+
+(int, int) get_last_member() method_id {
+    init_data();
+    ;; trhow error of addr not std
+    (int wc, int addr) = parse_std_addr(last_member);
+    return (wc, addr);
+}
+
+(int, int) get_mp_addr() method_id {
+    init_data();
+    ;; trhow error of addr not std
+    (int wc, int addr) = parse_std_addr(mp_addr);
+    return (wc, addr);
+}
+
+(int, int) get_mp_fee_addr() method_id {
+    init_data();
+    ;; trhow error of addr not std
+    (int wc, int addr) = parse_std_addr(mp_fee_addr);
+    return (wc, addr);
+}
+
+(int, int) get_royalty_fee_addr() method_id {
+    init_data();
+    ;; trhow error of addr not std
+    (int wc, int addr) = parse_std_addr(royalty_fee_addr);
+    return (wc, addr);
+}
+
+(int, int, int, int) get_fees_info() method_id {
+    init_data();
+    return (
+        mp_fee_percent, mp_fee_factor,
+        royalty_fee_percent, royalty_fee_factor
+    );
+}
+
+(int, int, int, int, int) get_bid_info() method_id {
+    init_data();
+    return (
+        min_bid, max_bid, min_step, 
+        last_bid, end_time
+    );
+}
+
