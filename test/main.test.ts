@@ -10,7 +10,7 @@ import {
     toNano,
     Address
 } from 'ton'
-import { SmartContract } from 'ton-contract-executor'
+import { OutAction, SmartContract } from 'ton-contract-executor'
 import { encodeAucStorage, MSG } from '../src/encoder'
 import { getRandSigner } from '../src/utils'
 
@@ -59,7 +59,7 @@ describe('SmartContract main tests', () => {
                 royaltyFeePercent: 5
             },
             {
-                mminBid: toNano(0.1),
+                mminBid: toNano(1),
                 mmaxBid: toNano(100),
                 minStep: toNano(0.1),
                 endTime: ~~(Date.now() / 1000) + (60 * 60 * 24) // 24h
@@ -81,6 +81,40 @@ describe('SmartContract main tests', () => {
     })
 
     describe('contract', () => {
+        interface ISimpleResult {
+            exit_code: number
+            out: OutAction[]
+        }
+
+        async function placeBidsOrder (values: number[]): Promise<ISimpleResult[]> {
+            const resultArr: ISimpleResult[] = []
+            await Promise.all(values.map(async (value) => {
+                const result = await smc.sendInternalMessage(new InternalMessage({
+                    to: SELF_ADDR,
+                    from: getRandSigner(),
+                    value: toNano(value),
+                    bounce: true,
+                    body: EMPTY_BODY
+                }))
+                resultArr.push({ exit_code: result.exit_code, out: result.actionList })
+                const get = await smc.invokeGetMethod('bid_info', [])
+                console.log('last_bid:', Number(get.result.toString()) / 1e9)
+            }))
+
+            return resultArr
+        }
+
+        async function simpleTransferNFT (): Promise<void> {
+            const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER)
+            await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: NFT_ADDR,
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+        }
+
         it('1) simple transfer nft', async () => {
             const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER)
 
@@ -175,28 +209,21 @@ describe('SmartContract main tests', () => {
         })
 
         it('6) place bids in order', async () => {
-            // for first transfer nft
-            const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER)
-            await smc.sendInternalMessage(new InternalMessage({
-                to: SELF_ADDR,
-                from: NFT_ADDR,
-                value: toNano(0.1),
-                bounce: true,
-                body: new CommonMessageInfo({ body: new CellMessage(msg) })
-            }))
+            await simpleTransferNFT()
 
-            await Promise.all([ 10, 5, 30 ].map(async (value) => {
-                const result = await smc.sendInternalMessage(new InternalMessage({
-                    to: SELF_ADDR,
-                    from: getRandSigner(),
-                    value: toNano(value),
-                    bounce: true,
-                    body: EMPTY_BODY
-                }))
+            const results = await placeBidsOrder([ 10, 15, 30 ])
+            results.forEach((res) => {
+                expect(res.exit_code).to.equal(TVM_EXIT_CODES.OK)
+            })
+        })
 
-                console.log(result)
-                expect(result.exit_code).to.equal(TVM_EXIT_CODES.OK)
-            }))
+        it('6.1) place bids in incorrect order', async () => {
+            await simpleTransferNFT()
+
+            const results = await placeBidsOrder([ 10, 5 ])
+            results.forEach((res) => {
+                console.log(res)
+            })
         })
     })
 

@@ -179,28 +179,32 @@
             last_member = sender_addr;
             last_bid = msg_value;
             pack_data();
+            return ();
         }
         else {
             handle::return_transaction(sender_addr);
+            return ();
         }
         return ();
     }
-
+    
     if (msg_value < (last_bid + min_step)) {
         handle::return_transaction(sender_addr);
         return ();
     }
     
     builder return_prev_bid = begin_cell()
-            .store_uint(0x18, 6)
-            .store_slice(last_member)
-            .store_coins(last_bid)
-            .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-            .store_uint(0, 32)
-            .store_slice(msg::bid_return());
+        .store_uint(0x18, 6)
+        .store_slice(last_member)
+        .store_coins(last_bid)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_uint(0, 32)
+        .store_slice(msg::bid_return());
+
     send_raw_message(return_prev_bid.end_cell(), 2);
 
     last_member = sender_addr;
     last_bid = msg_value;
+    
     pack_data();
 }

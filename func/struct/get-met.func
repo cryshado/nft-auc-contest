@@ -8,3 +8,9 @@
     (int wc, int addr) = parse_std_addr(nft_owner);
     return (wc, addr);
 }
+
+(int) bid_info() method_id {
+    init_data();
+
+    return (last_bid);
+}
