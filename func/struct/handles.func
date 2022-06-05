@@ -172,7 +172,15 @@
         handle::end_auction();
         return ();
     }
-    
+
+    if (last_bid == 0) {
+        throw_if(1000, msg_value < min_bid);
+        last_bid = msg_value;
+        last_member = sender_addr;
+        pack_data();
+        return ();
+    }
+
     if (msg_value < (last_bid + min_step)) {
         handle::return_transaction(sender_addr);
         return ();
