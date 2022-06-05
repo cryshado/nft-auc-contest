@@ -172,7 +172,8 @@
         handle::end_auction();
         return ();
     }
-
+    
+    ;; FIXME: unexpected behavior
     if (last_bid == 0) {
         if (msg_value >= min_bid) {
             last_member = sender_addr;

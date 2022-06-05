@@ -185,18 +185,18 @@ describe('SmartContract main tests', () => {
                 body: new CommonMessageInfo({ body: new CellMessage(msg) })
             }))
 
-            for (let i: number; i < 3; i += 1) {
-                // then try place a bid
+            await Promise.all([ 10, 5, 30 ].map(async (value) => {
                 const result = await smc.sendInternalMessage(new InternalMessage({
                     to: SELF_ADDR,
                     from: getRandSigner(),
-                    value: toNano(i * 10),
+                    value: toNano(value),
                     bounce: true,
                     body: EMPTY_BODY
                 }))
 
+                console.log(result)
                 expect(result.exit_code).to.equal(TVM_EXIT_CODES.OK)
-            }
+            }))
         })
     })
 
