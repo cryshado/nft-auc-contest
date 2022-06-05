@@ -19,6 +19,14 @@ class MSG {
 
         return msg.endCell()
     }
+
+    public static aucCancel (): Cell {
+        const msg = new Builder()
+            .storeUint(0, 32)
+            .storeUint(0x63616e63656c, 48)  // cancel
+
+        return msg.endCell()
+    }
 }
 
 export { MSG }

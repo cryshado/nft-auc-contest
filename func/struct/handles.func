@@ -37,9 +37,15 @@
     [+] reserve 0,001 ton 
 -}
 () handle::try_cancel(slice in_msg_body) impure inline_ref {
-    throw_unless(exit::not_message(), in_msg_body~load_uint(32) == 0); ;;throw if it`s not message
-    throw_unless(exit::not_cancel(), equal_slices?(in_msg_body, msg::cancel_msg())); ;; throw if msg not "Cancel"
+    throw_if( ;;throw if it`s not message
+        exit::not_message(), 
+        in_msg_body~load_uint(32) != 0
+    );
 
+    throw_if( ;; throw if msg not "cancel"
+        exit::not_cancel(), 
+        ~(equal_slices?(in_msg_body, msg::cancel_msg()))
+    ); 
 
     builder bid_return = begin_cell()
         .store_uint(0x18, 6)
@@ -53,12 +59,12 @@
 
     builder nft_return_body = begin_cell()
         .store_uint(op::transfer(), 32)
-        .store_uint(cur_lt(), 64) ;; query id
-        .store_slice(nft_owner) ;; new owner
-        .store_slice(nft_owner) ;; response_destination
-        .store_uint(0, 1) ;; custom payload
-        .store_coins(0) ;; forward amount
-        .store_uint(0, 1); ;; forward payload
+        .store_uint(cur_lt(), 64)   ;; query id
+        .store_slice(nft_owner)     ;; new owner
+        .store_slice(nft_owner)     ;; response_destination
+        .store_uint(0, 1)           ;; custom payload
+        .store_coins(0)             ;; forward amount
+        .store_uint(0, 1);          ;; forward payload
     
     builder nft_return_msg = begin_cell()
         .store_uint(0x18, 6)
@@ -66,7 +72,9 @@
         .store_coins(0)
         .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
         .store_ref(nft_return_body.end_cell());
-    raw_reserve(1000000, 0); ;; reserve some bebras  🐈
+
+    raw_reserve(1000000, 0);        ;; reserve some bebras  🐈
+
     send_raw_message(nft_return_msg.end_cell(), 128);
     end? = true;
     pack_data();

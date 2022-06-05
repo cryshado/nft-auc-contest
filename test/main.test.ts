@@ -118,7 +118,7 @@ describe('SmartContract main tests', () => {
             }))
         }
 
-        it('1) simple transfer nft', async () => {
+        it('1)  simple transfer nft', async () => {
             const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER)
 
             const result = await smc.sendInternalMessage(new InternalMessage({
@@ -139,7 +139,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equals(TVM_EXIT_CODES.OK)
         })
 
-        it('2) transfer nft from the wrong address', async () => {
+        it('2)  transfer nft from the wrong address', async () => {
             const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER)
 
             const result = await smc.sendInternalMessage(new InternalMessage({
@@ -157,7 +157,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equals(TVM_EXIT_CODES.auctionEnd)
         })
 
-        it('3) nft transfer with the wrong op', async () => {
+        it('3)  nft transfer with the wrong op', async () => {
             const wrongOP = 12345
             const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER, wrongOP)
 
@@ -176,7 +176,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equals(TVM_EXIT_CODES.auctionEnd)
         })
 
-        it('4) place bid, the contract has not yet init with a nft', async () => {
+        it('4)  place bid, the contract has not yet init with a nft', async () => {
             const result = await smc.sendInternalMessage(new InternalMessage({
                 to: SELF_ADDR,
                 from: getRandSigner(),
@@ -188,7 +188,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equals(TVM_EXIT_CODES.auctionEnd)
         })
 
-        it('5) transfer nft and simple place a bid', async () => {
+        it('5)  transfer nft and simple place a bid', async () => {
             // for first transfer nft
             const msg = MSG.nftOwnerAssigned(queryId(), NFT_OWNER)
             await smc.sendInternalMessage(new InternalMessage({
@@ -211,7 +211,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equal(TVM_EXIT_CODES.OK)
         })
 
-        it('6) place bids in order', async () => {
+        it('6)  place bids in order', async () => {
             await simpleTransferNFT()
 
             const results = await placeBidsOrder([ 10, 15, 30 ])
@@ -228,7 +228,7 @@ describe('SmartContract main tests', () => {
             })
         })
 
-        it('7) place bids in incorrect order', async () => {
+        it('7)  place bids in incorrect order', async () => {
             await simpleTransferNFT()
             const result = await placeBidsOrder([ 10, 5 ])
 
@@ -239,7 +239,7 @@ describe('SmartContract main tests', () => {
             expect(checkCase.mode).to.equals(64)
         })
 
-        it('8) a bid with instant redemption (the first bid at once)', async () => {
+        it('8)  a bid with instant redemption (the first bid at once)', async () => {
             await simpleTransferNFT()
             const result = await placeBidsOrder([ MAX_BID_TON ])
 
@@ -254,7 +254,7 @@ describe('SmartContract main tests', () => {
             })
         })
 
-        it('9) a bid with instant redemption (when there were already bids)', async () => {
+        it('9)  a bid with instant redemption (when there were already bids)', async () => {
             await simpleTransferNFT()
 
             const result = await placeBidsOrder([ 10, 50, MAX_BID_TON ])
@@ -302,6 +302,75 @@ describe('SmartContract main tests', () => {
             expect(result[1].out[0].type).to.equals('send_msg')
             const msgo = <any>result[1].out[0]
             expect(msgo.mode).to.equals(64)
+        })
+
+        it('13) auction cancellation with the message "cancel"', async () => {
+            await simpleTransferNFT()
+
+            const msg = MSG.aucCancel()
+            const result = await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: NFT_OWNER,
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+
+            const modes: number[] = [ 2, 0, 128 ]
+            const types: string[] = [ 'send_msg', 'reserve_currency', 'send_msg' ]
+
+            expect(result.exit_code).to.equals(TVM_EXIT_CODES.OK)
+            result.actionList.forEach((e, i: number) => {
+                const msgo = <any>e
+                expect(msgo.mode).to.equals(modes[i])
+                expect(msgo.type).to.equals(types[i])
+            })
+        })
+
+        it('14) auction "cancel" from wrong addr', async () => {
+            await simpleTransferNFT()
+
+            const msg = MSG.aucCancel()
+            const result = await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: getRandSigner(),
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+
+            expect(result.exit_code).to.equals(TVM_EXIT_CODES.lowBid)
+        })
+
+        it('15) auction "cancel" from without "cancel" msg', async () => {
+            await simpleTransferNFT()
+
+            const msg = new Builder().storeUint(0, 32).endCell()
+            const result = await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: NFT_OWNER,
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+
+            expect(result.exit_code).to.equals(TVM_EXIT_CODES.notCancel)
+        })
+
+        it('16) try place a bid after auc canceled', async () => {
+            await simpleTransferNFT()
+
+            const msg = MSG.aucCancel()
+            await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: NFT_OWNER,
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+
+            const result = await placeBidsOrder([ 10 ])
+            expect(result[0].exit_code).to.equals(TVM_EXIT_CODES.auctionEnd)
         })
     })
 
