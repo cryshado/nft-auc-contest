@@ -173,7 +173,7 @@
         return ();
     }
 
-    if (last_bid == 0) {
+    if ~last_bid {
         throw_if(1000, msg_value < min_bid);
         last_bid = msg_value;
         last_member = sender_addr;
