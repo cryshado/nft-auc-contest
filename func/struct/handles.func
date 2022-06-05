@@ -173,21 +173,6 @@
         return ();
     }
     
-    ;; FIXME: unexpected behavior
-    if (last_bid == 0) {
-        if (msg_value >= min_bid) {
-            last_member = sender_addr;
-            last_bid = msg_value;
-            pack_data();
-            return ();
-        }
-        else {
-            handle::return_transaction(sender_addr);
-            return ();
-        }
-        return ();
-    }
-    
     if (msg_value < (last_bid + min_step)) {
         handle::return_transaction(sender_addr);
         return ();

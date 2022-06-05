@@ -45,6 +45,13 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
         handle::try_cancel(in_msg_body);
         return();
     }
+    if (last_bid == 0) {
+        throw_if(1000, msg_value < min_bid);
+        last_bid = msg_value;
+        last_member = sender_addr;
+        pack_data();
+        return ();
+    }
 
     handle::new_bid(sender_addr, msg_value);
 }
