@@ -195,6 +195,10 @@
         handle::return_transaction(sender_addr);
         return ();
     }
+    ;; 100000(now) 99000(end time) 1000(try step time)
+    if ((end_time + try_step_time) >= now()) {
+        end_time += step_time;
+    }
     
     builder return_prev_bid = begin_cell()
         .store_uint(0x18, 6)
