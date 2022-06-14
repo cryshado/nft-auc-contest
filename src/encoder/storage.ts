@@ -43,6 +43,8 @@ function encodeAucStorage (
         .storeBitArray([ 0, 0 ])        // last_member
         .storeCoins(bids.lastBid)       // last_bid
         .storeUint(bids.endTime, 32)    // end_time
+        .storeUint(0, 32)               // step_time
+        .storeUint(0, 32)               // try_step_time
         .endCell()
 
     const nftCell = new Builder()

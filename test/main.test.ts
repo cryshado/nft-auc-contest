@@ -327,7 +327,30 @@ describe('SmartContract main tests', () => {
             })
         })
 
-        it('14) auction "cancel" from wrong addr', async () => {
+        it('14) auction cancellation with the message "cancel" from market', async () => {
+            await simpleTransferNFT()
+
+            const msg = MSG.aucCancel()
+            const result = await smc.sendInternalMessage(new InternalMessage({
+                to: SELF_ADDR,
+                from: MARKET_ADDR,
+                value: toNano(0.1),
+                bounce: true,
+                body: new CommonMessageInfo({ body: new CellMessage(msg) })
+            }))
+
+            const modes: number[] = [ 2, 0, 128 ]
+            const types: string[] = [ 'send_msg', 'reserve_currency', 'send_msg' ]
+
+            expect(result.exit_code).to.equals(TVM_EXIT_CODES.OK)
+            result.actionList.forEach((e, i: number) => {
+                const msgo = <any>e
+                expect(msgo.mode).to.equals(modes[i])
+                expect(msgo.type).to.equals(types[i])
+            })
+        })
+
+        it('15) auction "cancel" from wrong addr', async () => {
             await simpleTransferNFT()
 
             const msg = MSG.aucCancel()
@@ -342,7 +365,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equals(TVM_EXIT_CODES.lowBid)
         })
 
-        it('15) auction "cancel" from without "cancel" msg', async () => {
+        it('16) auction "cancel" from without "cancel" msg', async () => {
             await simpleTransferNFT()
 
             const msg = new Builder().storeUint(0, 32).endCell()
@@ -357,7 +380,7 @@ describe('SmartContract main tests', () => {
             expect(result.exit_code).to.equals(TVM_EXIT_CODES.notCancel)
         })
 
-        it('16) try place a bid after auc canceled', async () => {
+        it('17) try place a bid after auc canceled', async () => {
             await simpleTransferNFT()
 
             const msg = MSG.aucCancel()

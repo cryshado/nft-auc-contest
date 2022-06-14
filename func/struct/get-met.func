@@ -1,5 +1,8 @@
 (int, int) get_nft_owner() method_id {
     init_data();
+
+    if (nft_owner.slice_bits() <= 2) { return (0, 0); }
+
     ;; trhow error of addr not std
     (int wc, int addr) = parse_std_addr(nft_owner);
     return (wc, addr);
@@ -7,6 +10,9 @@
 
 (int, int) get_nft_addr() method_id {
     init_data();
+
+    if (nft_addr.slice_bits() <= 2) { return (0, 0); }
+
     ;; trhow error of addr not std
     (int wc, int addr) = parse_std_addr(nft_addr);
     return (wc, addr);
