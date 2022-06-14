@@ -35,13 +35,19 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
         handle::try_init_auction(sender_addr, in_msg_body);
         return ();
     }
-
+    
+    if (now() >= end_time) {
+        handle::return_transaction(sender_addr);
+        handle::end_auction();
+        return ();
+    }
+    
     if (end? == 1) {
         handle::return_transaction(sender_addr);
         return ();
     }
     
-    if (equal_slices?(sender_addr, nft_owner)) {
+    if (equal_slices?(sender_addr, nft_owner)) | (equal_slices?(sender_addr, mp_addr)){
         handle::try_cancel(in_msg_body);
         return();
     }
