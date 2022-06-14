@@ -21,6 +21,8 @@ global int      min_step;               ;; minimum step (can be 0)
 global slice    last_member;            ;; last member address
 global int      last_bid;               ;; last bid amount
 global int      end_time;               ;; unix end time
+global int      step_time;              ;; by how much the time increases with the new bid (e.g. 30)
+global int      try_step_time;          ;; after what time to start increasing the time (e.g. 60)
 
 ;; nft info cell (ref)
 global slice    nft_owner;              ;; nft owner addres (should be sent nft if auction canceled or money from auction)
@@ -49,6 +51,8 @@ global slice    nft_addr;               ;; nft address
     last_member = bids_cell~load_msg_addr();
     last_bid    = bids_cell~load_coins();
     end_time    = bids_cell~load_uint(32);
+    step_time   = bids_cell~load_uint(32);
+    try_step_time = bids_cell~load_uint(32);
 
     slice nft_cell = ds~load_ref().begin_parse();
     nft_owner   = nft_cell~load_msg_addr();
@@ -73,7 +77,9 @@ global slice    nft_addr;               ;; nft address
         .store_coins(min_step)      ;; + max    124
         .store_slice(last_member)   ;; + max    267 ($10 with Anycast = 0)
         .store_coins(last_bid)      ;; + max    124
-        .store_uint(end_time, 32);  ;; + stc    32
+        .store_uint(end_time, 32)   ;; + stc    32
+        .store_uint(step_time, 32)  ;; + stc    32
+        .store_uint(try_step_time, 32); ;; +stc 32
         ;; total: (124 * 4) + 267 + 32 = 795 maximum bits
     
     builder nft_cell = begin_cell()
