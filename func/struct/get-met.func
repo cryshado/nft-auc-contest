@@ -3,7 +3,6 @@
 
     if (nft_owner.slice_bits() <= 2) { return (0, 0); }
 
-    ;; trhow error of addr not std
     (int wc, int addr) = parse_std_addr(nft_owner);
     return (wc, addr);
 }
@@ -13,7 +12,6 @@
 
     if (nft_addr.slice_bits() <= 2) { return (0, 0); }
 
-    ;; trhow error of addr not std
     (int wc, int addr) = parse_std_addr(nft_addr);
     return (wc, addr);
 }
