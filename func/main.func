@@ -27,7 +27,7 @@ int equal_slices? (slice a, slice b) asm "SDEQ";
     slice sender_addr = cs~load_msg_addr();
     init_data();
 
-    throw_if(0, equal_slices?(sender_addr, mp_addr));
+    throw_if(0, equal_slices?(sender_addr, mp_addr) & end? == true);
 
     if (equal_slices?(sender_addr, nft_addr)) {
         handle::try_init_auction(sender_addr, in_msg_body);
